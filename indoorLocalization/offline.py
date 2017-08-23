@@ -4,9 +4,9 @@
 import pyrebase
 import pandas
 import numpy
+import os
 
 # ==================================================================================
-
 
 def calWeightAverage(dataList,weight):
     # dataList : [rssi1, rssi2, ..... ]
@@ -30,6 +30,15 @@ def calWeightAverage(dataList,weight):
             total_sum += appearanceTimes[i][0]*(appearanceTimes[i][1]**weight)
         return round(total_sum/weight_sum , 5)
 
+def distance_to_rssi(n,distance,_1mRssiAvg):
+    return numpy.round(-(10*n*numpy.log10(distance)-_1mRssiAvg), 5)
+
+def rssi_to_distance(n,rssi,_1mRssiAvg):
+    return numpy.round(10**((_1mRssiAvg-rssi)/(10*n)), 5)
+
+def rssi_to_cell(n,rssi,_1mRssiAvg):
+    return numpy.round(rssi_to_distance(n,rssi,_1mRssiAvg)/0.403, 5)
+
 def calErrorSumOfSquares(AP_information, measure_posiANDavg, nValue):
     # AP_information : ['rssiAvg':__, 'x':__, 'y':__ ]
     # measure_posiANDavg : [[position],[weightAverage],[wifiData]]...]
@@ -40,10 +49,12 @@ def calErrorSumOfSquares(AP_information, measure_posiANDavg, nValue):
         for i in range(len(measure_posiANDavg)):
             if not measure_posiANDavg[i][1]:
                 break
-            distance = ((AP_information['x']-measure_posiANDavg[i][0][0])**2+
+            # unit of distance is 'm' ->  0.403m per cell
+            distance = (((AP_information['x']-measure_posiANDavg[i][0][0])**2+
                         (AP_information['y']-measure_posiANDavg[i][0][1])**2
-                        )**0.5*0.43
-            rssi = -(10*nValue*numpy.log10(distance)-AP_information['rssiAvg'])
+                        )**0.5)*0.403
+            #rssi = -(10*nValue*numpy.log10(distance)-AP_information['rssiAvg'])
+            rssi = distance_to_rssi(nValue,distance,AP_information['rssiAvg'])
             errSum += numpy.abs(measure_posiANDavg[i][1]-rssi)
         #print(AP_information,errSum)#,measure_posiANDavg)
         return errSum
@@ -57,7 +68,7 @@ def calValueOfN(AP_information, measure_posiANDavg):
         step = 0.01
         n_init = 0
         sqrErrRegister = 0
-        while n_init<5:
+        while n_init<10:
             #print(n_init-step,sqrErrRegister)
             if n_init == 0:
                 sqrErrRegister = calErrorSumOfSquares(AP_information, measure_posiANDavg,n_init)
@@ -135,7 +146,7 @@ if __name__ == '__main__':
     all_AP_Name = list(db_AP.keys())
     
     
-    data = pandas.read_excel("/home/yuda/workspace/python/indoorLocalization/xls/wifiData2.xls",0)
+    data = pandas.read_excel(os.getcwd()+"/xls/wifiData3.xls",0)
     #data = data.drop(0,axis = 0)  # del rows of index
     # test dictionary
     # db_AP["00:22:cf:cc:d1:36"]["n"] = 1111
