@@ -4,6 +4,7 @@
 import pyrebase
 import operator
 import numpy
+import matplotlib.pyplot as plt
 from offline import rssi_to_cell
 
 
@@ -26,17 +27,22 @@ def del_not_in_forN(realtime,forN):
             i-=1
     return realtime
 
-def choose_biggest_three_rssi_to_cell(realtime,forN):
+def choose_best_three_rssi_to_cell(realtime,forN):
     realtime = sorted(realtime.items(), key=operator.itemgetter(1))
     lenth = len(realtime)
     for i in range(lenth-3):
         del realtime[0]
     realtime =dict(realtime)
+    threeNames = list(realtime.keys())
     for i in range(len(realtime)):
-        realtime[list(realtime.keys())[i]] = numpy.round(rssi_to_cell(forN[list(realtime.keys())[i]]['n'],
-                      realtime[list(realtime.keys())[i]], forN[list(realtime.keys())[i]]['rssiAvg']),5)
+        realtime[threeNames[i]] = numpy.round(rssi_to_cell(forN[threeNames[i]]['n'],
+                      realtime[threeNames[i]], forN[threeNames[i]]['rssiAvg']),5)
     return realtime
 
+
+def choose_worst_one_rssi_to_cell(realtime,forN):
+        
+    return 0
 
 def getRealtimePosision(realtime_length_byCell,forN): # return [x, y]
     if len(realtime_length_byCell) < 3:
@@ -58,12 +64,6 @@ def getRealtimePosision(realtime_length_byCell,forN): # return [x, y]
         yl = forN[list(realtime_length_byCell.keys())[n]]['y']+a/d*dy
         ls4_save_coordinate[0].append([xl+h/d*dy, yl-h/d*dx])
         ls4_save_coordinate[1].append([xl-h/d*dy, yl+h/d*dx])
-    for i in range(len(ls4_save_coordinate[0])):
-        n = i
-        n1 = i+1
-        if n1 >= len(ls4_save_coordinate[0]):
-            n1 = n1 - len(ls4_save_coordinate[0])
-        
     return ls4_save_coordinate
         
 def getTriLength(points_3):
@@ -106,7 +106,31 @@ def getWeightAvgPossition(avgPossition_coordinate, weight, biggest_three_rssi_In
         numerator_x += xi*_d**weight
         numerator_y += yi*_d**weight
     print('加權平均後的座標為\n',numerator_x/denominator,numerator_y/denominator)
-    return numerator_x
+    return [numerator_x/denominator,numerator_y/denominator]
+
+def showPolt(realtime_best_three):
+    fig, ax = plt.subplots()
+    toListRealtime = list(realtime_best_three.keys())
+    sp = getRealtimePosision(realtime_best_three,forN)
+    for i in range(3):
+        if i == 0 : clr = 'r'
+        if i == 1 : clr = 'g'
+        if i == 2 : clr = 'b'
+        circle = plt.Circle((forN[toListRealtime[i]]['x'],forN[toListRealtime[i]]['y']),
+                         realtime_best_three[toListRealtime[i]],color=clr,fill=False)
+        ax.add_artist(circle)
+    for i in range(2):
+        if i == 0 : clr = 'r'
+        if i == 1 : clr = 'b'
+        for j in range(3):
+            p = plt.Circle((sp[i][j][0],sp[i][j][1]),1,color=clr)
+            ax.add_artist(p)
+    plt.xlim(-50,100)
+    plt.ylim(-50,100)
+    
+    
+    
+    
 # ==================================================================================
 
 if __name__ == '__main__':
@@ -123,15 +147,21 @@ if __name__ == '__main__':
     forN = del_no_N_term(forN)
     realtime = list(firebase.child("realtime").get().val().keys())[0]
     realtime = dict(firebase.child("realtime").child(realtime).get().val())
+    bb = realtime
     realtime = del_not_in_forN(realtime,forN)
-    realtime = choose_biggest_three_rssi_to_cell(realtime,forN)
-       
+    b=realtime
+    print(sorted(realtime.items(), key=operator.itemgetter(1)))
+    realtime_best_three = choose_best_three_rssi_to_cell(realtime,forN)
+
     
-    a = getRealtimePosision(realtime, forN)
+    a = getRealtimePosision(realtime_best_three, forN)
+    c=a
     a = getSmallerRealtimePosision(a)
+    d=a
     a = getAvgPossition(a)
     print('平均座標為\n',a[0],a[1])
-    getWeightAvgPossition(a,2,realtime,forN)
+    coordinate = getWeightAvgPossition(a,7,realtime_best_three,forN)
+    showPolt(realtime_best_three)
 
 
 

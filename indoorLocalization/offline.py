@@ -146,7 +146,7 @@ if __name__ == '__main__':
     all_AP_Name = list(db_AP.keys())
     
     
-    data = pandas.read_excel(os.getcwd()+"/xls/wifiData3.xls",0)
+    data = pandas.read_excel(os.getcwd()+"/xls/wifiData4.xls",0)
     #data = data.drop(0,axis = 0)  # del rows of index
     # test dictionary
     # db_AP["00:22:cf:cc:d1:36"]["n"] = 1111
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     add_n_to_dictionary(db_AP, classifyRecordingList)
     
     
-    db.child('forN').remove()
+    db.child('AP_Info').remove()
     
-    upNewAPInfo = db.child('forN')
+    upNewAPInfo = db.child('AP_Info')
     upNewAPInfo.push(db_AP)
