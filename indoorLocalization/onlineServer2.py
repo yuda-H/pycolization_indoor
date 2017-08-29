@@ -47,9 +47,86 @@ def triangle_acute_or_not(ApInfo, realtimeDatas):
     return True
 
 def localization_by_4(ApInfo, realtimeDatas):
-    largest_three_rssi = list(dict(sorted(realtimeDatas.items(),
+    if len(realtimeDatas)<4:
+        print('Less then 4 points.')
+        return False
+    largest_3_rssi = list(dict(sorted(realtimeDatas.items(),
                                key=operator.itemgetter(1))[-3::]).keys())
-
+    smallest_1_rssi = list(dict(sorted(realtimeDatas.items(),
+                               key=operator.itemgetter(1))[0:1]).keys())
+    for i in range(3):
+        ApInfo[largest_3_rssi[i]]['realtime']=realtimeDatas[largest_3_rssi[i]]
+    ApInfo[smallest_1_rssi[0]]['realtime']=realtimeDatas[smallest_1_rssi[0]]
+    
+    coordinate_6 = [[],[],[]]
+    for i in range(3):
+        dx = ApInfo[largest_3_rssi[i]]['x']-ApInfo[largest_3_rssi[i-1]]['x']
+        dy = ApInfo[largest_3_rssi[i]]['y']-ApInfo[largest_3_rssi[i-1]]['y']
+        d  = (dx**2+dy**2)**0.5
+        r1  = rssi_to_cell(ApInfo[largest_3_rssi[i]]['n'], 
+                           ApInfo[largest_3_rssi[i]]['realtime'],
+                           ApInfo[largest_3_rssi[i]]['rssiAvg'])
+        r  = rssi_to_cell(ApInfo[largest_3_rssi[i-1]]['n'], 
+                           ApInfo[largest_3_rssi[i-1]]['realtime'],
+                           ApInfo[largest_3_rssi[i-1]]['rssiAvg'])
+        a  = (r**2-r1**2+d**2)/(2*d)
+        h  = (numpy.abs(r**2-a**2))**0.5
+        xl = ApInfo[largest_3_rssi[i-1]]['x']+a/d*dx
+        yl = ApInfo[largest_3_rssi[i-1]]['y']+a/d*dy
+        x0 = xl+h/d*dy
+        y0 = yl-h/d*dx
+        x1 = xl-h/d*dy
+        y1 = yl+h/d*dx
+        coordinate_6[0].append(x0)
+        coordinate_6[0].append(x1)
+        coordinate_6[1].append(y0)
+        coordinate_6[1].append(y1)
+    
+    for i in range(6):
+        length_x = coordinate_6[0][i]-ApInfo[smallest_1_rssi[0]]['x']
+        length_y = coordinate_6[1][i]-ApInfo[smallest_1_rssi[0]]['y']
+        length = numpy.abs((length_x**2+length_y**2)**0.5-
+                           rssi_to_cell(ApInfo[smallest_1_rssi[0]]['n'],
+                                     ApInfo[smallest_1_rssi[0]]['realtime'],
+                                     ApInfo[smallest_1_rssi[0]]['rssiAvg']))
+        coordinate_6[2].append(length)
+        
+    print(coordinate_6)
+    
+    for i in range(5):
+        for j in range(5-i):
+            if coordinate_6[2][j] > coordinate_6[2][j+1]:
+                for k in range(3):
+                    temp = coordinate_6[k][j]
+                    coordinate_6[k][j] = coordinate_6[k][j+1]
+                    coordinate_6[k][j+1] = temp
+    print(coordinate_6)
+            
+    fig, ax = plt.subplots()
+    plt.xlim(-50,100)
+    plt.ylim(-50,100)
+    for i in range(3):
+        r = rssi_to_cell(ApInfo[largest_3_rssi[i]]['n'],
+                         ApInfo[largest_3_rssi[i]]['realtime'],
+                         ApInfo[largest_3_rssi[i]]['rssiAvg'])
+        circle = plt.Circle((ApInfo[largest_3_rssi[i]]['x'], 
+                             ApInfo[largest_3_rssi[i]]['y']),r,fill=False)
+        ax.add_artist(circle)
+    for i in range(6):
+        if i < 3 : clr = 'r'
+        else : clr = 'k'
+        point = plt.Circle((coordinate_6[0][i],coordinate_6[1][i]),1,
+                           color=clr,fill=False)
+        ax.add_artist(point)
+    
+    r = rssi_to_cell(ApInfo[smallest_1_rssi[0]]['n'],
+                     ApInfo[smallest_1_rssi[0]]['realtime'],
+                     ApInfo[smallest_1_rssi[0]]['rssiAvg'])
+    circle = plt.Circle((ApInfo[smallest_1_rssi[0]]['x'], 
+                         ApInfo[smallest_1_rssi[0]]['y']),r,
+                        color='b',fill=False)
+    ax.add_artist(circle)
+    
     return 0
 
 def localization(ApInfo, realtimeDatas):
@@ -86,6 +163,7 @@ if __name__ == '__main__':
                                key=operator.itemgetter(1))[-3::]).keys())
 
     localization(ApInfo, realtimeDatas)
+    
     
     
     

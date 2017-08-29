@@ -107,10 +107,8 @@ if __name__ == '__main__':
             '10:be:f5:ab:e0:26':	-85,
             'f8:e9:03:8f:bc:62':	-81,
             '6c:72:20:0d:88:28':	-86
-
-
             }
     
     
     
-    realtime.push(realtimeWifiData3)
+    realtime.push(realtimeWifiData4)

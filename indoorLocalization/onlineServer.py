@@ -64,6 +64,7 @@ def getRealtimePosision(realtime_length_byCell,forN): # return [x, y]
         yl = forN[list(realtime_length_byCell.keys())[n]]['y']+a/d*dy
         ls4_save_coordinate[0].append([xl+h/d*dy, yl-h/d*dx])
         ls4_save_coordinate[1].append([xl-h/d*dy, yl+h/d*dx])
+    print(ls4_save_coordinate)
     return ls4_save_coordinate
         
 def getTriLength(points_3):
