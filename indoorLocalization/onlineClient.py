@@ -62,7 +62,7 @@ if __name__ == '__main__':
             '00:22:6b:7c:ef:70':	-76  ################### NICE
             }
     
-    realtimeWifiData3 = {# -3 , 20
+    realtimeWifiData3 = {# -3 , 20  ok
             '1c:b7:2c:ed:b5:fc':	-50,
             '00:a2:89:00:d9:61':	-71,
             '1c:b7:2c:ed:b5:f8':	-51,
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             '08:10:77:41:96:f7':	-77
             }
     
-    realtimeWifiData4 = {# -3 , 42
+    realtimeWifiData4 = {# -3 , 42  ok
             'b0:c7:45:ac:21:4a':	-53,
             '2c:4d:54:1b:67:00':	-49,
             '70:62:b8:83:94:63':	-54,
@@ -111,4 +111,5 @@ if __name__ == '__main__':
     
     
     
-    realtime.push(realtimeWifiData4)
+    
+    realtime.push(realtimeWifiData1)

@@ -98,9 +98,10 @@ def getClassifyList(weight, recordingData, all_AP_name):
         classify_WifiData.append([all_AP_name[i],[],[]])
         for j in range(len(recordingData)):
             if list(recordingData.iloc[j])[1] == all_AP_name[i]:
-                classify_WifiData[i][2].append([list(recordingData.iloc[j])[2:4],
-                             calWeightAverage(list(recordingData.iloc[j])[4:],weight),
-                             list(recordingData.iloc[j])[4:]])
+                if recordingData.iloc[j,4::].count() > 5:
+                    classify_WifiData[i][2].append([list(recordingData.iloc[j])[2:4],
+                                 calWeightAverage(list(recordingData.iloc[j])[4:],weight),
+                                 list(recordingData.iloc[j])[4:]])
     return classify_WifiData
 
 
@@ -146,7 +147,7 @@ if __name__ == '__main__':
     all_AP_Name = list(db_AP.keys())
     
     
-    data = pandas.read_excel(os.getcwd()+"/xls/wifiData4.xls",0)
+    data = pandas.read_excel(os.getcwd()+"/xls/wifiData5.xls",0)
     #data = data.drop(0,axis = 0)  # del rows of index
     # test dictionary
     # db_AP["00:22:cf:cc:d1:36"]["n"] = 1111

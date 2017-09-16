@@ -46,7 +46,25 @@ def triangle_acute_or_not(ApInfo, realtimeDatas):
             return False
     return True
 
-def localization_by_4(ApInfo, realtimeDatas):
+def getWeightAvgPossition(coordinate_3,weight):
+    # [[x0,x1,x2], [y0,y1,y2]]
+    avg = [numpy.sum(coordinate_3[0][::])/3,numpy.sum(coordinate_3[1][::])/3]
+    numerator_x = 0
+    numerator_y = 0
+    denominator = 0
+    
+    for i in range(3):
+        dx = coordinate_3[0][i]-avg[0]
+        dy = coordinate_3[1][i]-avg[1]
+        length = (dx**2+dy**2)**-0.5
+        denominator += length**weight
+        numerator_x += coordinate_3[0][i]*length**weight
+        numerator_y += coordinate_3[1][i]*length**weight
+    avg = [numerator_x/denominator,numerator_y/denominator]
+    print(avg)
+    return 0
+
+def localization_by_4(ApInfo, realtimeDatas, weight):
     if len(realtimeDatas)<4:
         print('Less then 4 points.')
         return False
@@ -91,7 +109,6 @@ def localization_by_4(ApInfo, realtimeDatas):
                                      ApInfo[smallest_1_rssi[0]]['rssiAvg']))
         coordinate_6[2].append(length)
         
-    print(coordinate_6)
     
     for i in range(5):
         for j in range(5-i):
@@ -99,9 +116,9 @@ def localization_by_4(ApInfo, realtimeDatas):
                 for k in range(3):
                     temp = coordinate_6[k][j]
                     coordinate_6[k][j] = coordinate_6[k][j+1]
-                    coordinate_6[k][j+1] = temp
-    print(coordinate_6)
-            
+                    coordinate_6[k][j+1] = temp       
+    #print(coordinate_6)
+    
     fig, ax = plt.subplots()
     plt.xlim(-50,100)
     plt.ylim(-50,100)
@@ -127,15 +144,20 @@ def localization_by_4(ApInfo, realtimeDatas):
                         color='b',fill=False)
     ax.add_artist(circle)
     
+    coordinate_3 = [coordinate_6[0][0:3],coordinate_6[1][0:3]]
+    getWeightAvgPossition(coordinate_3,weight)
+    avg_position = [numpy.sum(coordinate_6[0][0:3])/3,numpy.sum(coordinate_6[1][0:3])/3]
+    print('平均座標為',avg_position)
+    
     return 0
 
-def localization(ApInfo, realtimeDatas):
+def localization(ApInfo, realtimeDatas, weight):
 
     if triangle_acute_or_not(ApInfo, realtimeDatas):
         print('TTT')
     else:
         print('FFF get 4 points')
-        localization_by_4(ApInfo, realtimeDatas)
+        localization_by_4(ApInfo, realtimeDatas, weight)
     
     return 0
 
@@ -162,24 +184,7 @@ if __name__ == '__main__':
     largest_three_rssi = list(dict(sorted(realtimeDatas.items(),
                                key=operator.itemgetter(1))[-3::]).keys())
 
-    localization(ApInfo, realtimeDatas)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    localization(ApInfo, realtimeDatas,2)
     
     
     
