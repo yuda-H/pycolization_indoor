@@ -56,4 +56,4 @@ print("    tr_leng \tresult_check\n",pd.concat([tr_leng,result_check],axis=1),"\
 result_predict = pd.DataFrame(knn.predict(pr_rssi).tolist())
 print("    pr_leng \tresult_predict\n",pd.concat([pr_leng,result_predict],axis=1))
 
-
+# git add/commit/push test
